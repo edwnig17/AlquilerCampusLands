@@ -7,7 +7,7 @@ class Server {
         this.app = express();
         this.port = process.env.PORT ;
         this.path = {
-            rutas: "/api/rutas",
+            rutas: "/api",
         }
         this.middlewares();
         this.routes();

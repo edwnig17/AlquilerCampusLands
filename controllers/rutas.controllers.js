@@ -1,139 +1,140 @@
 import { MongoClient, ObjectId } from 'mongodb';
-const url = "mongodb+srv://edwingstiven2023:1234@clusteralquilercarros.u8pfibm.mongodb.net/alquiler_carros";
-const client = new MongoClient(url);
 
-async function connect() {
+const url = "mongodb+srv://edwingstiven2023:1234@clusteralquilercarros.u8pfibm.mongodb.net/alquiler_carros";
+const cliente = new MongoClient(url);
+
+async function conectar() {
     try {
-        await client.connect();
+        await cliente.connect();
         console.log("Conexión a MongoDB establecida correctamente");
     } catch (error) {
         console.error("Error al conectar a MongoDB:", error);
     }
 }
 
-connect();
+conectar();
 
-const db = client.db("alquiler_carros");
+const db = cliente.db("alquiler_carros");
 
-const getClients = async (req, res) => {
+const obtenerClientes = async (req, res) => {
     try {
-        const collection = db.collection("clients");
-        const response = await collection.find().toArray();
-        res.json(response);
+        const coleccion = db.collection("clientes");
+        const respuesta = await coleccion.find().toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getAvailableCars = async (req, res) => {
+const obtenerAutomovilesDisponibles = async (req, res) => {
     try {
-        const collection = db.collection("automobiles");
-        const response = await collection.find({ "state": "available" }).toArray();
-        res.json(response);
+        const coleccion = db.collection("automoviles");
+        const respuesta = await coleccion.find({ "estado": "disponible" }).toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getRentalsClients = async (req, res) => {
+const obtenerClientesAlquilando = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client",
+                    from: "clientes",
+                    localField: "cliente",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $match: {
-                    "state": "active"
+                    "estado": "activo"
                 }
             },
             {
                 $project: {
-                    "client": 1,
-                    "state": 1
+                    "cliente": 1,
+                    "estado": 1
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getPendingReservations = async (req, res) => {
+const obtenerReservasPendientes = async (req, res) => {
     try {
-        const collection = db.collection("reservations");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("reservas");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client_id",
+                    from: "clientes",
+                    localField: "cliente_id",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $lookup: {
-                    from: "automobiles",
+                    from: "automoviles",
                     localField: "car",
                     foreignField: "_id",
-                    as: "car"
+                    as: "auto"
                 }
             },
             {
                 $match: {
-                    "state": "pending"
+                    "estado": "pendiente"
                 }
             },
             {
                 $project: {
-                    "client": 1,
-                    "state": 1,
-                    "car": 1
+                    "cliente": 1,
+                    "estado": 1,
+                    "auto": 1
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getRentalById = async (req, res) => {
+const obtenerAlquilerPorId = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client",
+                    from: "clientes",
+                    localField: "cliente",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $lookup: {
-                    from: "automobiles",
+                    from: "automoviles",
                     localField: "car",
                     foreignField: "_id",
-                    as: "car"
+                    as: "auto"
                 }
             },
             {
                 $lookup: {
-                    from: "branches",
-                    localField: "branch",
+                    from: "sucursales",
+                    localField: "sucursal",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
@@ -142,376 +143,385 @@ const getRentalById = async (req, res) => {
                 }
             },
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getEmployeeByRole = async (req, res) => {
+const obtenerEmpleadosPorRol = async (req, res) => {
     try {
-        const collection = db.collection("employees");
-        const response = await collection.find({ "role": "Salesperson" }).toArray();
-        res.json(response);
+        const coleccion = db.collection("empleados");
+        const respuesta = await coleccion.find({ "rol": "Vendedor" }).toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getCarCountByBranch = async (req, res) => {
+const obtenerCantidadAutomovilesPorSucursal = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "branches",
-                    localField: "branch",
+                    from: "sucursales",
+                    localField: "sucursal",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
-                $unwind: "$branch"
+                $unwind: "$sucursal"
             },
             {
                 $group: {
-                    _id: "$branch.name",
-                    totalCars: {
+                    _id: "$sucursal.nombre",
+                    totalAutomoviles: {
                         $sum: 1
                     }
                 }
             },
             {
                 $project: {
-                    totalCars: 1
+                    totalAutomoviles: 1
                 },
             },
         ]).toArray();
-        res.json(response);
-    } catch (error) {
-        res.status(400).json({ error: "f" });
-        console.log(error);
-    }
-}
-const getRentalCost = async (req, res) => {
-    try {
-        const collection = db.collection("rentals");
-        const projection = { projection: { "cost": 1 } };
-        const response = await collection.find({ "_id": new ObjectId("65072d74de2beed4af0d1c5d") }, projection).toArray();
-        res.json(response);
-    } catch (error) {
-        res.status(400).json({ error: "f" });
-        console.log(error);
-    }
-}
-const getSpecificClient = async (req, res) => {
-    try {
-        const collection = db.collection("clients");
-        const response = await collection.find({ "dni": 12345678 }).toArray();
-        res.json(response);
-    } catch (error) {
-        res.status(400).json({ error: "f" });
-        console.log(error);
-    }
-}
-const getCarsGreaterThan5 = async (req, res) => {
-    try {
-        const collection = db.collection("automobiles");
-        const response = await collection.find({ "capacity": { $gt: 5 } }).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getRentalStartByDate = async (req, res) => {
+const obtenerCostoAlquiler = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const proyeccion = { proyeccion: { "costo": 1 } };
+        const respuesta = await coleccion.find({ "_id": new ObjectId("65072d74de2beed4af0d1c5d") }, proyeccion).toArray();
+        res.json(respuesta);
+    } catch (error) {
+        res.status(400).json({ error: "f" });
+        console.log(error);
+    }
+}
+
+const obtenerClienteEspecifico = async (req, res) => {
+    try {
+        const coleccion = db.collection("clientes");
+        const respuesta = await coleccion.find({ "dni": 12345678 }).toArray();
+        res.json(respuesta);
+    } catch (error) {
+        res.status(400).json({ error: "f" });
+        console.log(error);
+    }
+}
+
+const obtenerAutomovilesConCapacidadMayorA5 = async (req, res) => {
+    try {
+        const coleccion = db.collection("automoviles");
+        const respuesta = await coleccion.find({ "capacidad": { $gt: 5 } }).toArray();
+        res.json(respuesta);
+    } catch (error) {
+        res.status(400).json({ error: "f" });
+        console.log(error);
+    }
+}
+
+const obtenerAlquileresPorFechaDeInicio = async (req, res) => {
+    try {
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client",
+                    from: "clientes",
+                    localField: "cliente",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $lookup: {
-                    from: "automobiles",
+                    from: "automoviles",
                     localField: "car",
                     foreignField: "_id",
-                    as: "car"
+                    as: "auto"
                 }
             },
             {
                 $lookup: {
-                    from: "branches",
-                    localField: "branch",
+                    from: "sucursales",
+                    localField: "sucursal",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
                 $match: {
-                    "start_date": new Date("2023-07-05")
+                    "fecha_inicio": new Date("2023-07-05")
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getPendingReservationsByClient = async (req, res) => {
+
+const obtenerReservasPendientesPorCliente = async (req, res) => {
     try {
-        const collection = db.collection("reservations");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("reservas");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client_id",
+                    from: "clientes",
+                    localField: "cliente_id",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $lookup: {
-                    from: "automobiles",
+                    from: "automoviles",
                     localField: "car",
                     foreignField: "_id",
-                    as: "car"
+                    as: "auto"
                 }
             },
             {
                 $match: {
-                    "state": "pending",
-                    "client_id": new ObjectId("6506fadbde2beed4af0d1c34")
+                    "estado": "pendiente",
+                    "cliente_id": new ObjectId("6506fadbde2beed4af0d1c34")
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getSpecificEmployees = async (req, res) => {
+
+const obtenerEmpleadosEspecificos = async (req, res) => {
     try {
-        const collection = db.collection("employees");
-        const response = await collection.find({ "role": { $in: ["Manager", "Assistant"] } }).toArray();
-        res.json(response);
+        const coleccion = db.collection("empleados");
+        const respuesta = await coleccion.find({ "rol": { $in: ["Gerente", "Asistente"] } }).toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getClientWithAtLeastOneRental = async (req, res) => {
+
+const obtenerClientesConAlMenosUnAlquiler = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client",
+                    from: "clientes",
+                    localField: "cliente",
                     foreignField: "_id",
-                    as: "client_info"
+                    as: "info_cliente"
                 }
             },
             {
-                $unwind: "$client_info"
+                $unwind: "$info_cliente"
             },
             {
                 $group: {
-                    _id: "$client_info._id",
-                    name: { $first: "$client_info.name" },
-                    numRentals: { $sum: 1 }
+                    _id: "$info_cliente._id",
+                    nombre: { $first: "$info_cliente.nombre" },
+                    numAlquileres: { $sum: 1 }
                 }
             },
             {
                 $match: {
-                    numRentals: { $gte: 1 }
+                    numAlquileres: { $gte: 1 }
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getCarsOrdered = async (req, res) => {
+
+const obtenerAutomovilesOrdenados = async (req, res) => {
     try {
-        const collection = db.collection("automobiles");
-        const response = await collection.find().sort({ "make": 1, "model": 1 }).toArray();
-        res.json(response);
+        const coleccion = db.collection("automoviles");
+        const respuesta = await coleccion.find().sort({ "marca": 1, "modelo": 1 }).toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getCarCountByLocation = async (req, res) => {
+
+const obtenerCantidadAutomovilesPorUbicacion = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "branches",
-                    localField: "branch",
+                    from: "sucursales",
+                    localField: "sucursal",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
-                $unwind: "$branch"
+                $unwind: "$sucursal"
             },
             {
                 $group: {
-                    _id: "$branch.address",
-                    totalCars: {
+                    _id: "$sucursal.direccion",
+                    totalAutomoviles: {
                         $sum: 1
                     },
-                    location: { $first: "$branch.location" }
+                    ubicacion: { $first: "$sucursal.ubicacion" }
                 }
             },
             {
                 $project: {
-                    totalCars: 1,
-                    location: 1
+                    totalAutomoviles: 1,
+                    ubicacion: 1
                 },
             },
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getTotalRentals = async (req, res) => {
+
+const obtenerTotalAlquileres = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $group: {
                     _id: null,
-                    totalRentals: {
+                    totalAlquileres: {
                         $sum: 1
                     },
                 }
             },
             {
                 $project: {
-                    totalRentals: 1
+                    totalAlquileres: 1
                 },
             },
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getCarsGreaterThan5Available = async (req, res) => {
+
+const obtenerAutomovilesConCapacidadMayorA5Disponibles = async (req, res) => {
     try {
-        const collection = db.collection("automobiles");
-        const response = await collection.find({ "capacity": { $gte: 5 }, "state": "available" }).toArray();
-        res.json(response);
+        const coleccion = db.collection("automoviles");
+        const respuesta = await coleccion.find({ "capacidad": { $gte: 5 }, "estado": "disponible" }).toArray();
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
-const getRentalsByDateRange = async (req, res) => {
+
+const obtenerAlquileresPorRangoDeFechas = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.aggregate([
             {
                 $lookup: {
-                    from: "clients",
-                    localField: "client",
+                    from: "clientes",
+                    localField: "cliente",
                     foreignField: "_id",
-                    as: "client"
+                    as: "cliente"
                 }
             },
             {
                 $lookup: {
-                    from: "automobiles",
+                    from: "automoviles",
                     localField: "car",
                     foreignField: "_id",
-                    as: "car"
+                    as: "auto"
                 }
             },
             {
                 $lookup: {
-                    from: "branches",
-                    localField: "branch",
+                    from: "sucursales",
+                    localField: "sucursal",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
                 $match: {
-                    "start_date": {
+                    "fecha_inicio": {
                         $gte: new Date("2023-07-05"),
                         $lte: new Date("2023-07-10")
                     }
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-const getActiveRentalCount = async (req, res) => {
+const obtenerCantidadAlquileresActivos = async (req, res) => {
     try {
-        const collection = db.collection("rentals");
-        const response = await collection.countDocuments({ "state": "active" });
-        res.json(response);
+        const coleccion = db.collection("alquileres");
+        const respuesta = await coleccion.countDocuments({ "estado": "activo" });
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
     }
 }
 
-
-
-const getBranchesWithCarCount = async (req, res) => {
+const obtenerSucursalesConCantidadDeAutomoviles = async (req, res) => {
     try {
-        const collection = db.collection("automobiles");
-        const response = await collection.aggregate([
+        const coleccion = db.collection("automoviles");
+        const respuesta = await coleccion.aggregate([
             {
                 $group: {
-                    _id: "$branch",
-                    totalCars: {
+                    _id: "$sucursal",
+                    totalAutomoviles: {
                         $sum: 1
                     }
                 }
             },
             {
                 $lookup: {
-                    from: "branches",
+                    from: "sucursales",
                     localField: "_id",
                     foreignField: "_id",
-                    as: "branch"
+                    as: "sucursal"
                 }
             },
             {
                 $project: {
                     "_id": 0,
-                    "name": "$branch.name",
-                    "location": "$branch.location",
-                    "totalCars": 1
+                    "nombre": "$sucursal.nombre",
+                    "ubicacion": "$sucursal.ubicacion",
+                    "totalAutomoviles": 1
                 }
             }
         ]).toArray();
-        res.json(response);
+        res.json(respuesta);
     } catch (error) {
         res.status(400).json({ error: "f" });
         console.log(error);
@@ -519,14 +529,11 @@ const getBranchesWithCarCount = async (req, res) => {
 }
 
 export {
-    getClients, getAvailableCars, getRentalsClients, getPendingReservations, getRentalById, getEmployeeByRole, getCarCountByBranch,
-    getRentalCost, getSpecificClient, getCarsGreaterThan5, getRentalStartByDate, getPendingReservationsByClient, getSpecificEmployees,
-    getClientWithAtLeastOneRental, getCarsOrdered, getCarCountByLocation, getTotalRentals, getCarsGreaterThan5Available,
-    getRentalsByDateRange, getActiveRentalCount, getBranchesWithCarCount
+    obtenerClientes, obtenerAutomovilesDisponibles, obtenerClientesAlquilando, obtenerReservasPendientes,
+    obtenerAlquilerPorId, obtenerEmpleadosPorRol, obtenerCantidadAutomovilesPorSucursal, obtenerCostoAlquiler,
+    obtenerClienteEspecifico, obtenerAutomovilesConCapacidadMayorA5, obtenerAlquileresPorFechaDeInicio,
+    obtenerReservasPendientesPorCliente, obtenerEmpleadosEspecificos, obtenerClientesConAlMenosUnAlquiler,
+    obtenerAutomovilesOrdenados, obtenerCantidadAutomovilesPorUbicacion, obtenerTotalAlquileres,
+    obtenerAutomovilesConCapacidadMayorA5Disponibles, obtenerAlquileresPorRangoDeFechas, obtenerCantidadAlquileresActivos,
+    obtenerSucursalesConCantidadDeAutomoviles
 };
-
-
-
-
-
-
